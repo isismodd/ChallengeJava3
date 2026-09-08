@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-br">
+<head th:replace="~{layout/base :: head}">
+    <title>Lembretes - ClyvoPet</title>
+</head>
+<body>
+<div th:replace="~{layout/base :: layout(~{::page})}">
+    <div th:fragment="page">
+        <!-- Título centralizado -->
+        <div style="text-align: center !important; margin-bottom: 0.5rem !important;">
+            <h1 style="font-size: 1.75rem; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-bell me-2" style="color: #1e3a8a;"></i>Lembretes
+            </h1>
+        </div>
+
+        <!-- Cards de resumo -->
+        <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <div class="card text-center" style="flex: 0 0 30%; max-width: 150px;">
+                <div class="card-body py-2">
+                    <small class="text-muted">Total</small>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #1e3a8a;" th:text="${#lists.size(lembretes)}">0</div>
+                </div>
+            </div>
+            <div class="card text-center" style="flex: 0 0 30%; max-width: 150px;">
+                <div class="card-body py-2">
+                    <small class="text-muted">Enviados</small>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">
+                        <span th:text="${#lists.size(lembretes)} - ${#lists.size(pendentes)}"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="card text-center" style="flex: 0 0 30%; max-width: 150px;">
+                <div class="card-body py-2">
+                    <small class="text-muted">Pendentes</small>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">
+                        <span th:text="${#lists.size(pendentes)}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões centralizados -->
+        <div style="text-align: center !important; margin-bottom: 1.5rem !important;">
+            <a href="/web/lembretes" class="btn btn-outline-secondary btn-sm">Todos</a>
+            <a href="/web/lembretes/pendentes" class="btn btn-outline-warning btn-sm">Pendentes</a>
+            <a href="/web/lembretes/enviar-todos" class="btn btn-primary btn-sm">
+                <i class="fas fa-envelope me-1"></i>Enviar Todos Pendentes
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Animal</th>
+                    <th>Tutor</th>
+                    <th>Data Envio</th>
+                    <th class="text-center">Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${lembretes}">
+                    <td data-label="ID" th:text="${l.id}"></td>
+                    <td data-label="Animal" th:text="${l.consulta.animal.nome}"></td>
+                    <td data-label="Tutor" th:text="${l.consulta.animal.tutorNome}"></td>
+                    <!-- DATA ENVIO CORRIGIDA -->
+                    <td data-label="Data Envio">
+                        <span th:if="${l.dataEnvio != null}" th:text="${#temporals.format(l.dataEnvio, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span th:unless="${l.dataEnvio != null}">-</span>
+                    </td>
+                    <td data-label="Status" class="text-center">
+                            <span th:class="${l.enviado} ? 'badge bg-success' : 'badge bg-warning'"
+                                  style="font-size: 0.75rem; padding: 0.3rem 0.7rem;">
+                                <i th:class="${l.enviado} ? 'fas fa-check-circle' : 'fas fa-clock'"
+                                   style="margin-right: 4px;"></i>
+                                <span th:text="${l.enviado} ? 'Enviado' : 'Pendente'"></span>
+                            </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${lembretes.empty}" class="text-center py-5">
+            <i class="fas fa-bell fa-3x mb-3" style="color: #94a3b8;"></i>
+            <p class="text-muted">Nenhum lembrete cadastrado.</p>
+            <p class="text-muted small">Os lembretes são gerados automaticamente ao agendar consultas.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

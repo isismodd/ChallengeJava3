@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-br">
+<head th:replace="~{layout/base :: head}">
+    <title>Detalhes da Consulta - ClyvoPet</title>
+</head>
+<body>
+<div th:replace="~{layout/base :: layout(~{::page})}">
+    <div th:fragment="page">
+        <!-- Título centralizado -->
+        <div style="text-align: center !important; margin-bottom: 0.5rem !important;">
+            <h1 style="font-size: 1.75rem; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-calendar-check me-2" style="color: #1e3a8a;"></i>Detalhes da Consulta
+            </h1>
+        </div>
+
+        <!-- Botão Voltar centralizado -->
+        <div style="text-align: center !important; margin-bottom: 1.5rem !important;">
+            <a href="/web/consultas" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+
+        <!-- Card com detalhes -->
+        <div class="card">
+            <div class="card-body">
+                <!-- Tabela de dados -->
+                <div style="overflow-x: auto;">
+                    <table class="table table-bordered" style="margin-bottom: 0;">
+                        <tbody>
+                        <tr>
+                            <th style="width: 30%; background-color: #f8f9fa; font-weight: 600;">ID</th>
+                            <td th:text="${consulta.id}"></td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Animal</th>
+                            <td th:text="${consulta.animal.nome}"></td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Espécie</th>
+                            <td th:text="${consulta.animal.especie}"></td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Veterinário</th>
+                            <td th:text="${consulta.veterinario.nome}"></td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Data/Hora</th>
+                            <td th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')}"></td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Status</th>
+                            <td>
+                                    <span th:class="${consulta.status == 'AGENDADA' ? 'badge bg-warning' :
+                                                   consulta.status == 'REALIZADA' ? 'badge bg-success' :
+                                                   'badge bg-danger'}"
+                                          style="font-size: 0.8rem; padding: 0.3rem 0.7rem;">
+                                        <i th:class="${consulta.status == 'AGENDADA' ? 'fas fa-clock' :
+                                                      consulta.status == 'REALIZADA' ? 'fas fa-check-circle' :
+                                                      'fas fa-times-circle'}"
+                                           style="margin-right: 4px;"></i>
+                                        <span th:text="${consulta.status}"></span>
+                                    </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Motivo</th>
+                            <td th:text="${consulta.motivo}"></td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Diagnóstico</th>
+                            <td th:text="${consulta.diagnostico}"></td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Prescrição</th>
+                            <td th:text="${consulta.prescricao}"></td>
+                        </tr>
+                        <tr>
+                            <th style="background-color: #f8f9fa; font-weight: 600;">Lembrete Enviado</th>
+                            <td>
+                                    <span th:class="${consulta.lembreteEnviado} ? 'badge bg-success' : 'badge bg-secondary'"
+                                          th:text="${consulta.lembreteEnviado} ? '✅ Enviado' : '❌ Não enviado'"></span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Botões de ação -->
+                <div style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                    <a th:href="@{/web/consultas/{id}/editar(id=${consulta.id})}" class="btn btn-outline-warning">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </a>
+                    <form th:action="@{/web/consultas/{id}/cancelar(id=${consulta.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Cancelar consulta?')">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                    </form>
+                    <form th:action="@{/web/consultas/{id}/finalizar(id=${consulta.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-outline-success" onclick="return confirm('Finalizar consulta?')">
+                            <i class="fas fa-check me-2"></i>Finalizar
+                        </button>
+                    </form>
+                    <a th:href="@{/web/lembretes/enviar/{id}(id=${consulta.id})}" class="btn btn-outline-primary">
+                        <i class="fas fa-bell me-2"></i>Enviar Lembrete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
