@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-br" th:fragment="layout(page)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClyvoPet</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar a {
+            text-decoration: none !important;
+        }
+        a {
+            text-decoration: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar" id="mainNavbar">
+    <div class="navbar-top">
+        <div class="container">
+            <div class="navbar-top-inner">
+                <a class="navbar-brand" href="/home">
+                    <img src="/images/clyvoLogo.png" alt="ClyvoPet" class="logo-img" th:src="@{/images/clyvoLogo.png}">
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="navbar-bottom">
+        <div class="container">
+            <div class="navbar-bottom-inner">
+                <a class="nav-link" href="/web/animais">Animais</a>
+                <a class="nav-link" href="/web/consultas">Consultas</a>
+                <a class="nav-link" href="/web/lembretes">Lembretes</a>
+                <a class="nav-link" href="/web/animais/novo">Novo Animal</a>
+                <a class="nav-link" href="/web/consultas/nova">Nova Consulta</a>
+                <a class="btn btn-outline-light btn-sm" href="/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>Sair
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Conteúdo -->
+<div class="container mt-4" id="mainContent">
+    <div th:if="${mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${mensagem}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <th:block th:replace="${page}" />
+</div>
+
+<script src="/webjars/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
