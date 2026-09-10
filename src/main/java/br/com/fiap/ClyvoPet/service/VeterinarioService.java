@@ -1,9 +1,11 @@
 package br.com.fiap.ClyvoPet.service;
 
 import br.com.fiap.ClyvoPet.model.Veterinario;
+import br.com.fiap.ClyvoPet.repository.ConsultaRepository;
 import br.com.fiap.ClyvoPet.repository.VeterinarioRepository;
-import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,71 +13,102 @@ import java.util.Optional;
 @Service
 public class VeterinarioService {
 
-    private final VeterinarioRepository repository;
+    private final VeterinarioRepository veterinarioRepository;
+    private final ConsultaRepository consultaRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public VeterinarioService(VeterinarioRepository repository) {
-        this.repository = repository;
+    public VeterinarioService(
+            VeterinarioRepository veterinarioRepository,
+            ConsultaRepository consultaRepository,
+            PasswordEncoder passwordEncoder
+    ) {
+        this.veterinarioRepository = veterinarioRepository;
+        this.consultaRepository = consultaRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void salvar(Veterinario veterinario) {
 
-        System.out.println(
-                "📝 Salvando veterinário: "
-                        + veterinario.getEmail()
-        );
+        if (veterinario.getSenha() == null
+                || veterinario.getSenha().isBlank()) {
 
-        String senhaCriptografada = BCrypt.hashpw(
-                veterinario.getSenha(),
-                BCrypt.gensalt()
-        );
+            throw new IllegalArgumentException(
+                    "A senha do veterinário é obrigatória."
+            );
+        }
 
-        veterinario.setSenha(senhaCriptografada);
+        veterinario.setSenha(
+                passwordEncoder.encode(veterinario.getSenha())
+        );
 
         if (veterinario.getRole() == null
-                || veterinario.getRole().isEmpty()) {
+                || veterinario.getRole().isBlank()) {
 
             veterinario.setRole("VETERINARIO");
         }
 
-        repository.salvar(veterinario);
-
-        System.out.println(
-                "✅ Veterinário salvo com sucesso!"
-        );
+        veterinarioRepository.salvar(veterinario);
     }
 
     public Optional<Veterinario> buscarPorEmail(String email) {
-        return repository.buscarPorEmail(email);
+        return veterinarioRepository.buscarPorEmail(email);
     }
 
     public Optional<Veterinario> buscarPorId(Long id) {
-        return repository.buscarPorId(id);
+        return veterinarioRepository.buscarPorId(id);
     }
 
     public List<Veterinario> listarTodos() {
-        return repository.listarTodos();
+        return veterinarioRepository.listarTodos();
     }
 
     public void atualizar(Veterinario veterinario) {
-        repository.atualizar(veterinario);
+
+        veterinarioRepository.buscarPorId(veterinario.getId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Veterinário não encontrado."
+                        )
+                );
+
+        veterinarioRepository.atualizar(veterinario);
     }
 
-    public void deletar(Long id) {
-        repository.deletar(id);
+    @Transactional
+    public int deletar(Long id) {
+
+        veterinarioRepository.buscarPorId(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Veterinário não encontrado."
+                        )
+                );
+
+        int consultasCanceladas =
+                consultaRepository.cancelarConsultasPorVeterinario(id);
+
+        veterinarioRepository.deletar(id);
+
+        return consultasCanceladas;
     }
 
     public boolean autenticar(String email, String senha) {
 
-        Optional<Veterinario> optional =
-                repository.buscarPorEmail(email);
+        Optional<Veterinario> veterinarioOptional =
+                veterinarioRepository.buscarPorEmail(email);
 
-        if (optional.isEmpty()) {
+        if (veterinarioOptional.isEmpty()) {
             return false;
         }
 
-        Veterinario veterinario = optional.get();
+        Veterinario veterinario =
+                veterinarioOptional.get();
 
-        return BCrypt.checkpw(
+        if (!Boolean.TRUE.equals(veterinario.getAtivo())) {
+            return false;
+        }
+
+        return passwordEncoder.matches(
                 senha,
                 veterinario.getSenha()
         );

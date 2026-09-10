@@ -63,14 +63,14 @@ public class ConsultaRepository {
                     C.LEMBRETE_ENVIADO,
 
                     A.NOME AS ANIMAL_NOME,
-                    V.NOME AS VETERINARIO_NOME
+                    NVL(V.NOME, 'Veterinário excluído') AS VETERINARIO_NOME
 
                 FROM CONSULTAS C
 
                 INNER JOIN ANIMAIS A
                     ON A.ID = C.ANIMAL_ID
 
-                INNER JOIN VETERINARIOS V
+                LEFT JOIN VETERINARIOS V
                     ON V.ID = C.VETERINARIO_ID
 
                 ORDER BY C.DATA_HORA DESC
@@ -97,14 +97,14 @@ public class ConsultaRepository {
                     C.LEMBRETE_ENVIADO,
 
                     A.NOME AS ANIMAL_NOME,
-                    V.NOME AS VETERINARIO_NOME
+                    NVL(V.NOME, 'Veterinário excluído') AS VETERINARIO_NOME
 
                 FROM CONSULTAS C
 
                 INNER JOIN ANIMAIS A
                     ON A.ID = C.ANIMAL_ID
 
-                INNER JOIN VETERINARIOS V
+                LEFT JOIN VETERINARIOS V
                     ON V.ID = C.VETERINARIO_ID
 
                 WHERE C.ID = ?
@@ -134,14 +134,14 @@ public class ConsultaRepository {
                     C.LEMBRETE_ENVIADO,
 
                     A.NOME AS ANIMAL_NOME,
-                    V.NOME AS VETERINARIO_NOME
+                    NVL(V.NOME, 'Veterinário excluído') AS VETERINARIO_NOME
 
                 FROM CONSULTAS C
 
                 INNER JOIN ANIMAIS A
                     ON A.ID = C.ANIMAL_ID
 
-                INNER JOIN VETERINARIOS V
+                LEFT JOIN VETERINARIOS V
                     ON V.ID = C.VETERINARIO_ID
 
                 WHERE C.ANIMAL_ID = ?
@@ -173,17 +173,18 @@ public class ConsultaRepository {
                     C.LEMBRETE_ENVIADO,
 
                     A.NOME AS ANIMAL_NOME,
-                    V.NOME AS VETERINARIO_NOME
+                    NVL(V.NOME, 'Veterinário excluído') AS VETERINARIO_NOME
 
                 FROM CONSULTAS C
 
                 INNER JOIN ANIMAIS A
                     ON A.ID = C.ANIMAL_ID
 
-                INNER JOIN VETERINARIOS V
+                LEFT JOIN VETERINARIOS V
                     ON V.ID = C.VETERINARIO_ID
 
                 WHERE C.LEMBRETE_ENVIADO = 0
+                  AND C.STATUS = 'AGENDADA'
                   AND C.DATA_HORA BETWEEN ? AND ?
 
                 ORDER BY C.DATA_HORA
@@ -226,6 +227,21 @@ public class ConsultaRepository {
         );
     }
 
+    public int cancelarConsultasPorVeterinario(Long veterinarioId) {
+
+        String sql = """
+                UPDATE CONSULTAS
+                SET STATUS = 'CANCELADA',
+                    VETERINARIO_ID = NULL
+                WHERE VETERINARIO_ID = ?
+                """;
+
+        return jdbcTemplate.update(
+                sql,
+                veterinarioId
+        );
+    }
+
     public void deletar(Long id) {
 
         String sql = """
@@ -251,8 +267,13 @@ public class ConsultaRepository {
                 rs.getLong("ANIMAL_ID")
         );
 
+        Long veterinarioId = rs.getObject(
+                "VETERINARIO_ID",
+                Long.class
+        );
+
         consulta.setVeterinarioId(
-                rs.getLong("VETERINARIO_ID")
+                veterinarioId
         );
 
         consulta.setAnimalNome(

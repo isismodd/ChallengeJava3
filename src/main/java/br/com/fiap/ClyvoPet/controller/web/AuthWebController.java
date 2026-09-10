@@ -24,16 +24,17 @@ public class AuthWebController {
 
     @PostMapping("/registrar")
     public String registrar(Veterinario veterinario) {
+
         try {
+
+            // Cadastro público nunca pode criar ADMIN
+            veterinario.setRole("VETERINARIO");
 
             veterinarioService.salvar(veterinario);
 
             return "redirect:/login?sucesso";
 
         } catch (Exception e) {
-
-            System.err.println("❌ ERRO AO CADASTRAR VETERINÁRIO:");
-            e.printStackTrace();
 
             return "redirect:/registrar?error";
         }

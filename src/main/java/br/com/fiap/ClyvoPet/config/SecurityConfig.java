@@ -1,6 +1,5 @@
 package br.com.fiap.ClyvoPet.config;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,38 +26,72 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config
+    ) throws Exception {
         return config.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
                 .authorizeHttpRequests(auth -> auth
-                        // Liberados para todos
-                        .requestMatchers("/login", "/registrar", "/css/**", "/js/**", "/webjars/**", "/images/**").permitAll()
 
-                        // Rotas administrativas - apenas ADMIN
-                        .requestMatchers("/web/admin/**").hasRole("ADMIN")
+                        // Rotas públicas
+                        .requestMatchers(
+                                "/login",
+                                "/registrar",
+                                "/css/**",
+                                "/js/**",
+                                "/webjars/**",
+                                "/images/**"
+                        ).permitAll()
 
-                        // Rotas do sistema - ADMIN ou VETERINARIO
-                        .requestMatchers("/web/**").hasAnyRole("ADMIN", "VETERINARIO")
+                        // Apenas ADMIN pode administrar veterinários
+                        .requestMatchers(
+                                "/web/veterinarios/**",
+                                "/api/veterinarios/**",
+                                "/web/admin/**"
+                        ).hasRole("ADMIN")
 
-                        // API - ADMIN ou VETERINARIO
-                        .requestMatchers("/api/**").hasAnyRole("ADMIN", "VETERINARIO")
+                        // ADMIN e VETERINARIO
+                        .requestMatchers(
+                                "/web/animais/**",
+                                "/web/consultas/**",
+                                "/web/lembretes/**"
+                        ).hasAnyRole("ADMIN", "VETERINARIO")
 
+                        // APIs permitidas para os dois perfis
+                        .requestMatchers(
+                                "/api/animais/**",
+                                "/api/consultas/**",
+                                "/api/lembretes/**"
+                        ).hasAnyRole("ADMIN", "VETERINARIO")
+
+                        // Home exige autenticação
+                        .requestMatchers(
+                                "/home",
+                                "/"
+                        ).hasAnyRole("ADMIN", "VETERINARIO")
+
+                        // Qualquer outra rota exige login
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/home", true)
                         .permitAll()
                 )
+
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
+
                 .userDetailsService(userDetailsService)
+
                 .csrf(csrf -> csrf.disable());
 
         return http.build();
